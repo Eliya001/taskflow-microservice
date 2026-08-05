@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: taskflow_users
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root1234
+      DB_NAME: taskflow_users
+      JWT_SECRET: taskflow_secret_key_2024
+    depends_on:
+      mysql:
+        condition: service_healthy
+ 
+  task-service:
+    build: ./task-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root1234
+      DB_NAME: taskflow_tasks
+      JWT_SECRET: taskflow_secret_key_2024
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root1234
+      DB_NAME: taskflow_tasks
+      JWT_SECRET: taskflow_secret_key_2024
+    depends_on:
+      mysql:
+        condition: service_healthy
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      USER_SERVICE_URL: http://user-service:3001
+      TASK_SERVICE_URL: http://task-service:3002
+      NOTIFICATION_SERVICE_URL: http://notification-service:3003
+    depends_on:
+      - user-service
+      - task-service
+      - notification-service
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+
+volumes:
+  mysql_data:
+

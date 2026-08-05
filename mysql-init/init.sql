@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS taskflow_users;
+CREATE DATABASE IF NOT EXISTS taskflow_tasks;
+CREATE DATABASE IF NOT EXISTS taskflow_notifications;
