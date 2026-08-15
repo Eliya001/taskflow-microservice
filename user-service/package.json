@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "jest"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -14,5 +15,8 @@
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.22.5"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
   }
 }

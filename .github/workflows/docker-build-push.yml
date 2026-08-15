@@ -1,12 +1,55 @@
-name: Build and push Docker Images
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main]
-
+  pull_request:
+    branches: [main]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+        - api-gateway
+        - user-service
+        - task-service
+        - notification-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd ${{ matrix.service }}
+          npm install
+
+      - name: Run tests
+        run: |
+          cd ${{ matrix.service }}
+          npm test
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Kubernetes manifests
+        run: |
+          curl -LO "https://dl.k8s.io/release/stable.txt"
+          curl -LO "https://dl.k8s.io/release/$(cat stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          ./kubectl apply --dry-run=client -f k8s/ || true
+
   build-and-push:
+    needs: [test, init]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -32,4 +75,3 @@ jobs:
           context: ./${{ matrix.service }}
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/taskflow-${{ matrix.service }}:${{ github.sha }}
-
