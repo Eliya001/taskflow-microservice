@@ -35,7 +35,10 @@ spec:
             - name: DB_NAME
               value: taskflow_notification
             - name: JWT_SECRET
-              value: taskflow_secret_key_2024
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: JWT_SECRET
 
 ---
 apiVersion: v1
