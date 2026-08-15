@@ -49,7 +49,7 @@ jobs:
           ./kubectl apply --dry-run=client -f k8s/ || true
 
   build-and-push:
-    needs: [test, init]
+    needs: [test, lint]
     runs-on: ubuntu-latest
     strategy:
       matrix:
